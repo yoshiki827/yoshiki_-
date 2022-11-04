@@ -37,7 +37,7 @@ for moviename in files:
   video_path = path + "/" +moviename
   #video_path = './movie/hara/20221005AH左右方向GVS中視点変化_ON2.mp4'
   save_file_path2 = './test_fd1/'+file+'/'+moviename+'/'+filename
-  #save_file_path2='./test_fd1/hara/20221005AH左右方向GVS中視点変化_ON2.mp4/gankyuzentai3_gpu3'
+  #save_file_path2='./test_fd1/hara/20221005AH左右方向GVS中視点変化_ON2.mp4/gankyuzentai3_gpu3'aaa
   video = cv2.VideoCapture(video_path)
   print('OpenVideo:', video.isOpened())    
                             
