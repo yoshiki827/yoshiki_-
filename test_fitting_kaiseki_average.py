@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from scipy import signal
+from pandas import DataFrame
 """
 x = [
     0, 10,  20,  30,  40,  50,  60,  70,  80,  stimustart, 100, 110, 120, 130, 140, 150, 160, 170,
@@ -44,6 +45,7 @@ cycle=3
 stimustart=90
 stimufinish = stimustart + fps*(cycle/wave_f)
 int(stimufinish)
+list=[]
 
 for foldername in file:
     
@@ -76,8 +78,10 @@ for foldername in file:
         csv_input = pd.concat([data0_df,csv_input])
     csv_input=csv_input.reset_index()
     #totalframeの長さをそろえる
-    if len(csv_input)>=totalframe:
-        csv_input.drop(range(totalframe,len(csv_input)))
+    if len(csv_input)>totalframe:
+        
+        csv_input=csv_input.drop(range(totalframe,len(csv_input)))
+       
     if totalframe>=len(csv_input):
         dif=totalframe-len(csv_input)
         l=[0]*dif
@@ -99,29 +103,44 @@ for foldername in file:
 
     csv_input=csv_input.reset_index()
 
-    csv_input.to_csv(allfolder + "/" +foldername+'/test7.csv')
+    #csv_input.to_csv(allfolder + "/" +foldername+'/test7.csv')
 
     csv = csv_input[["num of Kp","x","y","theta"]]
+    
+    a_csv=csv['theta'].values
+    list.append(a_csv)
+
+
+
     csv_total = csv_total+csv
     count_file +=1
-    csv_total.to_csv(allfolder + "/" +foldername+'/test_total7.csv')
+    #csv_total.to_csv(allfolder + "/" +foldername+'/test_total7.csv')
+
+list_=np.array(list)
+mean=list_.mean(axis=0)
+std=list_.std(axis=0)
+
+
 
 print(count_file)
 csv_total = csv_total/count_file
 csv_total=csv_total.reset_index()     
+
 #csv_total.to_csv(allfolder + '/test.csv')
 csv_total.plot(subplots=True,y=['x','y','theta'])
 csv_stimulating=csv_total[ stimustart: int(stimufinish+1)]
 #print(csv_stimulating)
 #csv_stimulating=csv_total[90:571]
 def fit_func(x, a, b, c):
-    return a * np.cos(b*(x/360.0*np.pi*2 - c))
+    return a * np.sin(b*(x/30.0*np.pi*2 - c))
 
 fig,ax=plt.subplots(3,1,figsize=(15,10))
 
 #popt, pcov = curve_fit(fit_func, x, y, p0=(0.5, 1.0, 100))
 #popt, pcov = curve_fit(fit_func, np.arange(len(csv_total)), csv_total['theta'].values, p0=(1, 3, 0))
-popt, pcov = curve_fit(fit_func, np.arange(len(csv_stimulating)), csv_stimulating['theta'].values, p0=(1, 3, 0))
+popt, pcov = curve_fit(fit_func, np.arange(len(csv_stimulating)), csv_stimulating['theta'].values, p0=(1, 0.25, 0))
+np.savetxt(allfolder+'/'+'popt.txt',popt)
+#csv_total.to_csv(allfolder+'/'+'csv_total.csv')
 print(f"best-fit parameters = {popt}")
 print(f"covariance = \n{pcov}")
 
@@ -144,6 +163,7 @@ ax[2].plot(csv_stimulating['index'], fit_func(np.array(np.arange(len(csv_stimula
 ax[2].axvline(x=stimustart, color='red',  linewidth=3)#刺激開始
 ax[2].axvline(x=stimufinish, color='red',  linewidth=3)#刺激終了
 ax[2].set_ylim(-1.5,1.5)
+ax[2].fill_between(np.arange(len(csv_total)),mean+std,mean-std,alpha=0.2,color="blue")
 """"
 ax[3].plot(np.arange(len(csv_total)),csv_total['num of Kp'].values,label='Kp')
 ax[3].set_xlabel('frame')
