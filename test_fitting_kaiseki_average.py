@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from scipy import signal
-
+from pandas import DataFrame
 
 # In[234]:
 
@@ -37,20 +37,21 @@ def highpass(x, samplerate, fp, fs, gpass, gstop):
 # In[235]:
 
 
-allfolder = "./test_fd10/1128/Stop"
+allfolder = "./test_fd1/1229muratahukugai2polekubi_main"
 #allfolder = "./test_fd10/1025_antyu"
-folder = "gankyuzentai_gpu2"
+folder = "kaiseki1"
 #folder = "gankyuzentai_gpu2"
 file=os.listdir(allfolder)
 count_file=0
 csv_total = 0
-totalframe=500
+totalframe=450
 fps=30
 wave_f=0.25
-cycle=4
-stimustart=90
+cycle=3
+stimustart=60
 stimufinish = stimustart + fps*(cycle/wave_f)
 int(stimufinish)
+list=[]
 
 
 # In[236]:
@@ -73,8 +74,6 @@ for foldername in file:
         csv_input_lumi['index'].values[1]=z
     #刺激開始時点の回旋を0にそろえる
     z=csv_input_lumi['index'].values[0]
-    stimustart = z
-    stimufinish = csv_input_lumi['index'].values[1]
     z=csv_input['theta'].values[z]
     csv_input['theta']=csv_input['theta']-z
 
@@ -93,7 +92,8 @@ for foldername in file:
     csv_input=csv_input.reset_index()
     #totalframeの長さをそろえる
     if len(csv_input)>=totalframe:
-        csv_input.drop(range(totalframe,len(csv_input)))
+        csv_input = csv_input.drop(range(totalframe,len(csv_input)))
+
     if totalframe>=len(csv_input):
         dif=totalframe-len(csv_input)
         l=[0]*dif
@@ -129,10 +129,17 @@ for foldername in file:
     csv_input.to_csv(allfolder + "/" +foldername+'/test7.csv')
 
     csv = csv_input[["num of Kp","x","y","theta"]]
+
+    a_csv=csv['theta'].values
+    list.append(a_csv)
+
     csv_total = csv_total+csv
     count_file +=1
     csv_total.to_csv(allfolder + "/" +foldername+'/test_total7.csv')
 
+list_=np.array(list)
+mean=list_.mean(axis=0)
+std=list_.std(axis=0)
 
 # In[237]:
 
@@ -145,7 +152,7 @@ csv_total.plot(subplots=True,y=['x','y','theta'])
 csv_stimulating=csv_total[ stimustart: int(stimufinish+1)]
 
 def fit_func(x, a, b,c):
-    return a * np.cos(b*(x/fps*np.pi*2)) - c
+    return a * np.sin(b*(x/fps*np.pi*2 - c)) 
 
 fig,ax=plt.subplots(4,1,figsize=(15,10))
 
@@ -154,7 +161,7 @@ fig,ax=plt.subplots(4,1,figsize=(15,10))
 popt, pcov = curve_fit(fit_func, np.arange(len(csv_stimulating)), csv_stimulating['theta'].values, p0=(1, 0.25, 0))
 #print(f"best-fit parameters = {popt}")
 #print(f"covariance = \n{pcov}")
-
+np.savetxt(allfolder+'/'+'popt.txt',popt)
 peer = np.sqrt(np.diag(pcov))
 
 d_a = round(peer[0],5)
@@ -184,7 +191,8 @@ ax[2].set_ylabel('amp[degree]')
 ax[2].plot(csv_stimulating['index'], fit_func(np.array(np.arange(len(csv_stimulating))), *popt), alpha=0.5, color="crimson")
 ax[2].axvline(x=stimustart, color='red',  linewidth=3)#刺激開始
 ax[2].axvline(x=stimufinish, color='red',  linewidth=3)#刺激終了
-ax[2].set_ylim(-0.05,0.05)
+ax[2].fill_between(np.arange(len(csv_total)),mean+std,mean-std,alpha=0.2,color="blue")
+#ax[2].set_ylim(-0.05,0.05)
 
 ax[3].plot(np.arange(len(csv_total)),csv_total['num of Kp'].values,label='Kp')
 ax[3].set_xlabel('frame')
@@ -195,6 +203,8 @@ ax[3].axhline(y=100, color='red',  linewidth=1)
 ax[3].axhline(y=200, color='red',  linewidth=1)
 ax[3].axhline(y=300, color='red',  linewidth=1)
 #ax[3].set_ylim(0, 500)
+
+plt.show()
 """
 for a in ax:
     a.grid()
