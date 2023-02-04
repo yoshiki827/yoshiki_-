@@ -1,7 +1,7 @@
 # yoshiki_-
 解析に使うプログラム
 ## 軸解析時につかうプログラム
-test_copy_gpu_new.py
+test_copy_gpu_new.py  
 def_doukousuitei.py
 ## csv_test.py
 今は使っていない  
