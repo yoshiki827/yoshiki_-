@@ -1,6 +1,8 @@
 # yoshiki_-
 解析に使うプログラム
-
+## 軸解析時につかうプログラム
+test_copy_gpu_new.py
+def_doukousuitei.py
 ## csv_test.py
 今は使っていない  
 test_fitting_kaiseki_average.pyに機能を移行
